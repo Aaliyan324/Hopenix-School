@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+:root {
+  /* ================================
+     BRAND COLORS
+     ================================ */
+
+  --primary: #38BDF8;        /* Sky Blue */
+  --primary-hover: #0EA5E9;
+  --primary-light: #E0F2FE;
+
+  --secondary: #fa8d3f;      /* Orange */
+  --secondary-hover: #EA580C;
+  --secondary-light: #FFF1E6;
+
+  --tertiary: #2563EB;       /* Royal Blue */
+  --tertiary-light: #EFF6FF;
+
+
+  /* ================================
+     BACKGROUNDS
+     ================================ */
+
+  --background: #F8FCFF;
+  --background-alt: #F0F9FF;
+
+  --surface: #FFFFFF;
+  --surface-hover: #F8FAFC;
+
+  --card: #FFFFFF;
+  --card-hover: #F8FCFF;
+
+
+  /* ================================
+     TEXT
+     ================================ */
+
+  --text: #172033;
+  --text-primary: #172033;
+
+  --text-secondary: #475569;
+
+  --text-muted: #64748B;
+
+  --text-light: #94A3B8;
+
+  --text-on-primary: #FFFFFF;
+  --text-on-secondary: #FFFFFF;
+
+
+  /* ================================
+     NEUTRALS
+     ================================ */
+
+  --neutral-50: #F8FAFC;
+  --neutral-100: #F1F5F9;
+  --neutral-200: #E2E8F0;
+  --neutral-300: #CBD5E1;
+  --neutral-400: #94A3B8;
+  --neutral-500: #64748B;
+  --neutral-600: #475569;
+  --neutral-700: #334155;
+  --neutral-800: #1E293B;
+  --neutral-900: #0F172A;
+
+
+
+
+
+  /* ================================
+     STATUS
+     ================================ */
+
+  --success: #16A34A;
+  --success-light: #DCFCE7;
+
+  --warning: #D97706;
+  --warning-light: #FEF3C7;
+
+  --error: #DC2626;
+  --error-light: #FEE2E2;
+
+
+}
+
+body{
+  background: var(--background);
+}
+.heading {
+  font-family: "Fira Sans Extra Condensed", sans-serif;
+}
+
+.paragraph {
+  font-family: "Inter", sans-serif;
+}
