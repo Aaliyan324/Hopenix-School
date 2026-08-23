@@ -5,6 +5,7 @@ import AboutUs from './sections/AboutUs'
 import Academics from './sections/Academics'
 import Admissions from './sections/Admissions'
 import Testimonials from './sections/Testimonials'
+import ContactUs from './sections/ContactUs'
 
 function App() {
 
@@ -15,6 +16,7 @@ function App() {
       <Academics/>
       <Admissions/>
       <Testimonials/>
+      <ContactUs/>
     </>
   )
 }
