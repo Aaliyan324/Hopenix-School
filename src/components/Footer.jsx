@@ -1,4 +1,5 @@
-import React, { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
@@ -283,18 +284,46 @@ const Footer = () => {
               Quick Links
             </h4>
             <ul className="space-y-3 text-sm text-white/70">
-              {['About Us', 'Academics', 'Admissions', 'Campus Life', 'News'].map(
-                (item) => (
-                  <li key={item}>
-                    <a
-                      href={`#${item.toLowerCase().replace(' ', '-')}`}
-                      className="hover:text-white transition-colors duration-200"
-                    >
-                      {item}
-                    </a>
-                  </li>
-                )
-              )}
+              <li>
+                <a
+                  href="#about"
+                  className="hover:text-white transition-colors duration-200"
+                >
+                  About Us
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#academics"
+                  className="hover:text-white transition-colors duration-200"
+                >
+                  Academics
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#admissions"
+                  className="hover:text-white transition-colors duration-200"
+                >
+                  Admissions
+                </a>
+              </li>
+              <li>
+                <Link
+                  to="/events"
+                  className="hover:text-white transition-colors duration-200"
+                >
+                  Events
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="#contact"
+                  className="hover:text-white transition-colors duration-200"
+                >
+                  Contact
+                </a>
+              </li>
             </ul>
           </div>
 

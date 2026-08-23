@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
@@ -233,6 +233,7 @@ const Admissions = () => {
   return (
     <section
       ref={sectionRef}
+      id="admissions"
       className="
         relative
         m-2

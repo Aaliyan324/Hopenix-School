@@ -1,9 +1,11 @@
-import React, { useState, useLayoutEffect, useRef } from 'react'
+import { useState, useLayoutEffect, useRef } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import gsap from 'gsap'
 
 const Navbar = () => {
   const navRef = useRef(null)
   const [isOpen, setIsOpen] = useState(false)
+  const location = useLocation()
 
   useLayoutEffect(() => {
     const nav = navRef.current
@@ -47,12 +49,12 @@ const Navbar = () => {
         "
       >
         {/* Logo */}
-        <a
-          href="#"
+        <Link
+          to="/"
           className="heading font-black text-xl tracking-wider uppercase text-white"
         >
           Hopenix School
-        </a>
+        </Link>
 
         {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-white/80">
@@ -74,6 +76,14 @@ const Navbar = () => {
           >
             Programs
           </a>
+          <Link
+            to="/events"
+            className={`hover:text-white transition-colors duration-200 ${
+              location.pathname === '/events' ? 'text-white' : ''
+            }`}
+          >
+            Events
+          </Link>
           <a
             href="#contact"
             className="hover:text-white transition-colors duration-200"
@@ -85,7 +95,7 @@ const Navbar = () => {
         {/* Desktop CTA Button */}
         <div className="hidden md:block">
           <a
-            href="#contact"
+            href="#admissions"
             className="
               px-5
               py-2.5
@@ -191,6 +201,15 @@ const Navbar = () => {
           >
             Programs
           </a>
+          <Link
+            to="/events"
+            onClick={() => setIsOpen(false)}
+            className={`text-base font-medium transition-colors py-1 border-b border-white/5 ${
+              location.pathname === '/events' ? 'text-white' : 'text-white/80 hover:text-white'
+            }`}
+          >
+            Events
+          </Link>
           <a
             href="#contact"
             onClick={() => setIsOpen(false)}
@@ -199,7 +218,7 @@ const Navbar = () => {
             Contact
           </a>
           <a
-            href="#contact"
+            href="#admissions"
             onClick={() => setIsOpen(false)}
             className="
               w-full

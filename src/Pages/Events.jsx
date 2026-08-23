@@ -1,48 +1,16 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import upcomingEvents from '../data/events'
 
 gsap.registerPlugin(ScrollTrigger)
-
-const eventsData = [
-  {
-    id: 'stem-fair',
-    date: { month: 'SEP', day: '15', year: '2026' },
-    dateString: '2026-09-15T09:00:00',
-    title: 'Annual STEM & Innovation Fair',
-    time: '9:00 AM - 4:00 PM',
-    location: 'Main Exhibition Hall',
-    description: 'Showcasing cutting-edge student projects in robotics, software engineering, and scientific research.',
-    category: 'Featured',
-  },
-  {
-    id: 'art-exhibition',
-    date: { month: 'SEP', day: '28', year: '2026' },
-    dateString: '2026-09-28T13:00:00',
-    title: 'Digital Media & Art Showcase',
-    time: '1:00 PM - 7:00 PM',
-    location: 'Creative Arts Center',
-    description: 'An immersive gallery experience featuring digital illustrations, interactive 3D models, and animations.',
-    category: 'Exhibition',
-  },
-  {
-    id: 'leadership-seminar',
-    date: { month: 'OCT', day: '10', year: '2026' },
-    dateString: '2026-10-10T10:30:00',
-    title: 'Global Leadership & Ethics Seminar',
-    time: '10:30 AM - 12:30 PM',
-    location: 'Auditorium A',
-    description: 'Guest speaker panel featuring industry pioneers and entrepreneurs sharing global business insights.',
-    category: 'Seminar',
-  },
-]
 
 const Events = () => {
   const sectionRef = useRef(null)
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
 
-  // Nearest event countdown target (STEM Fair)
-  const nearestEvent = eventsData[0]
+  // Nearest event countdown target (first event in centralized data)
+  const nearestEvent = upcomingEvents[0]
 
   useEffect(() => {
     const targetTime = new Date(nearestEvent.dateString).getTime()
@@ -273,7 +241,7 @@ const Events = () => {
 
       {/* Vertical List Layout */}
       <div className="flex flex-col gap-4">
-        {eventsData.map((event) => (
+        {upcomingEvents.map((event) => (
           <div
             key={event.id}
             className="
