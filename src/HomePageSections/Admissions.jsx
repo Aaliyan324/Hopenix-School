@@ -1,19 +1,22 @@
 import { useLayoutEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useAdmissions } from '../lib/admissions-service'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const Admissions = () => {
   const sectionRef = useRef(null)
+  const { admissions, loading } = useAdmissions()
 
   useLayoutEffect(() => {
+    if (loading || !admissions) return
     const section = sectionRef.current
 
     if (!section) return
 
     const ctx = gsap.context(() => {
-      // Set initial states before ScrollTrigger starts calculating positions
       gsap.set(
         [
           '.adm-badge',
@@ -58,7 +61,6 @@ const Admissions = () => {
         opacity: 0,
       })
 
-      // Main section entrance timeline
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
@@ -97,7 +99,6 @@ const Admissions = () => {
           '-=0.5'
         )
 
-        // Cards enter one after another
         .to(
           '.adm-card',
           {
@@ -112,7 +113,6 @@ const Admissions = () => {
           '-=0.25'
         )
 
-        // Process container
         .to(
           '.adm-process',
           {
@@ -123,7 +123,6 @@ const Admissions = () => {
           '-=0.3'
         )
 
-        // Steps
         .to(
           '.adm-step',
           {
@@ -138,7 +137,6 @@ const Admissions = () => {
           '-=0.4'
         )
 
-      // Small hover animation for cards
       const cards = gsap.utils.toArray('.adm-card')
 
       cards.forEach((card) => {
@@ -204,12 +202,10 @@ const Admissions = () => {
         card.addEventListener('mouseenter', hoverIn)
         card.addEventListener('mouseleave', hoverOut)
 
-        // Cleanup listeners
         card._admHoverIn = hoverIn
         card._admHoverOut = hoverOut
       })
 
-      // Refresh after everything has been registered
       requestAnimationFrame(() => {
         ScrollTrigger.refresh()
       })
@@ -228,7 +224,17 @@ const Admissions = () => {
     return () => {
       ctx.revert()
     }
-  }, [])
+  }, [loading, admissions])
+
+  // Don't render if admissions are disabled/unpublished
+  if (!loading && !admissions) return null
+  if (loading) return null
+
+  const { status, application, process: processSteps } = admissions
+  const isOpen = status?.label?.toLowerCase().includes('open')
+  const session = status?.session || '2026–27'
+  const applicationUrl = application?.url || '/admissions'
+  const displayProcess = (processSteps || []).slice(0, 3)
 
   return (
     <section
@@ -289,7 +295,7 @@ const Admissions = () => {
               />
             </svg>
 
-            Admissions 2026–2027
+            Admissions {session}
           </div>
 
           <h2
@@ -422,7 +428,8 @@ const Admissions = () => {
               </p>
             </div>
 
-            <button
+            <Link
+              to="/admissions"
               className="
                 adm-button
                 w-full
@@ -443,11 +450,11 @@ const Admissions = () => {
                 text-center
               "
             >
-              Apply Online Now
-            </button>
+              {application?.enabled ? (application?.label || 'Apply Online Now') : 'Learn More'}
+            </Link>
           </div>
 
-          {/* Admission Guide */}
+          {/* Admission Status Card */}
           <div
             className="
               adm-card
@@ -509,8 +516,15 @@ const Admissions = () => {
                   mb-3
                 "
               >
-                Admission Details & Guide
+                Admission Status
               </h3>
+
+              <div className="mb-4">
+                <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${isOpen ? 'bg-[var(--success-light)] text-[var(--success)]' : 'bg-[var(--error-light)] text-[var(--error)]'}`}>
+                  <span className={`w-2 h-2 rounded-full ${isOpen ? 'bg-[var(--success)]' : 'bg-[var(--error)]'}`} />
+                  {status?.label || 'Unavailable'}
+                </span>
+              </div>
 
               <p
                 className="
@@ -522,13 +536,12 @@ const Admissions = () => {
                   mb-8
                 "
               >
-                Download our comprehensive school prospectus, review
-                grade-wise fee structures, eligibility criteria, and key
-                academic dates.
+                {status?.description || 'Admission information will be available soon.'}
               </p>
             </div>
 
-            <button
+            <Link
+              to="/admissions"
               className="
                 adm-button
                 w-full
@@ -550,217 +563,110 @@ const Admissions = () => {
                 text-center
               "
             >
-              Download Prospectus
-            </button>
+              Explore Admissions
+            </Link>
           </div>
         </div>
 
         {/* Admission Process */}
-        <div
-          className="
-            adm-process
-            w-full
-            bg-[var(--surface)]
-            p-8
-            sm:p-10
-            rounded-3xl
-            border
-            border-[var(--neutral-200)]
-            shadow-sm
-          "
-        >
-
-          <h4
-            className="
-              heading
-              text-xl
-              font-bold
-              text-[var(--text-primary)]
-              mb-6
-              text-center
-              uppercase
-              tracking-wide
-            "
-          >
-            Admission Process in 3 Simple Steps
-          </h4>
-
+        {displayProcess.length > 0 && (
           <div
             className="
-              grid
-              grid-cols-1
-              md:grid-cols-3
-              gap-6
+              adm-process
+              w-full
+              bg-[var(--surface)]
+              p-8
+              sm:p-10
+              rounded-3xl
+              border
+              border-[var(--neutral-200)]
+              shadow-sm
             "
           >
 
-            {/* Step 1 */}
-            <div
+            <h4
               className="
-                adm-step
-                flex
-                flex-col
-                items-center
+                heading
+                text-xl
+                font-bold
+                text-[var(--text-primary)]
+                mb-6
                 text-center
-                p-4
+                uppercase
+                tracking-wide
               "
             >
-              <div
-                className="
-                  w-10
-                  h-10
-                  rounded-full
-                  bg-[var(--secondary)]
-                  text-white
-                  font-bold
-                  flex
-                  items-center
-                  justify-center
-                  mb-4
-                  text-sm
-                  shadow-sm
-                "
-              >
-                01
-              </div>
+              Admission Process in {displayProcess.length} Simple {displayProcess.length === 1 ? 'Step' : 'Steps'}
+            </h4>
 
-              <h5
-                className="
-                  heading
-                  text-lg
-                  font-bold
-                  text-[var(--text-primary)]
-                  mb-2
-                "
-              >
-                Submit Application
-              </h5>
-
-              <p
-                className="
-                  paragraph
-                  text-xs
-                  sm:text-sm
-                  text-[var(--text-secondary)]
-                "
-              >
-                Complete our online application form with student details
-                and previous academic records.
-              </p>
-            </div>
-
-            {/* Step 2 */}
             <div
               className="
-                adm-step
-                flex
-                flex-col
-                items-center
-                text-center
-                p-4
+                grid
+                grid-cols-1
+                md:grid-cols-3
+                gap-6
               "
             >
-              <div
-                className="
-                  w-10
-                  h-10
-                  rounded-full
-                  bg-[var(--secondary)]
-                  text-white
-                  font-bold
-                  flex
-                  items-center
-                  justify-center
-                  mb-4
-                  text-sm
-                  shadow-sm
-                "
-              >
-                02
-              </div>
 
-              <h5
-                className="
-                  heading
-                  text-lg
-                  font-bold
-                  text-[var(--text-primary)]
-                  mb-2
-                "
-              >
-                Assessment & Interview
-              </h5>
+              {displayProcess.map((step, idx) => (
+                <div
+                  key={step.id}
+                  className="
+                    adm-step
+                    flex
+                    flex-col
+                    items-center
+                    text-center
+                    p-4
+                  "
+                >
+                  <div
+                    className="
+                      w-10
+                      h-10
+                      rounded-full
+                      bg-[var(--secondary)]
+                      text-white
+                      font-bold
+                      flex
+                      items-center
+                      justify-center
+                      mb-4
+                      text-sm
+                      shadow-sm
+                    "
+                  >
+                    {String(idx + 1).padStart(2, '0')}
+                  </div>
 
-              <p
-                className="
-                  paragraph
-                  text-xs
-                  sm:text-sm
-                  text-[var(--text-secondary)]
-                "
-              >
-                Participate in an interactive assessment session and a
-                friendly family interview.
-              </p>
+                  <h5
+                    className="
+                      heading
+                      text-lg
+                      font-bold
+                      text-[var(--text-primary)]
+                      mb-2
+                    "
+                  >
+                    {step.title}
+                  </h5>
+
+                  <p
+                    className="
+                      paragraph
+                      text-xs
+                      sm:text-sm
+                      text-[var(--text-secondary)]
+                    "
+                  >
+                    {step.description}
+                  </p>
+                </div>
+              ))}
+
             </div>
-
-            {/* Step 3 */}
-            <div
-              className="
-                adm-step
-                flex
-                flex-col
-                items-center
-                text-center
-                p-4
-              "
-            >
-              <div
-                className="
-                  w-10
-                  h-10
-                  rounded-full
-                  bg-[var(--secondary)]
-                  text-white
-                  font-bold
-                  flex
-                  items-center
-                  justify-center
-                  mb-4
-                  text-sm
-                  shadow-sm
-                "
-              >
-                03
-              </div>
-
-              <h5
-                className="
-                  heading
-                  text-lg
-                  font-bold
-                  text-[var(--text-primary)]
-                  mb-2
-                "
-              >
-                Enrollment & Welcome
-              </h5>
-
-              <p
-                className="
-                  paragraph
-                  text-xs
-                  sm:text-sm
-                  text-[var(--text-secondary)]
-                "
-              >
-                Receive your official acceptance letter, complete fee
-                formalities, and join the family.
-              </p>
-            </div>
-
           </div>
-        </div>
+        )}
 
       </div>
     </section>

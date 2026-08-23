@@ -84,6 +84,14 @@ const Navbar = () => {
           >
             Events
           </Link>
+          <Link
+            to="/admissions"
+            className={`hover:text-white transition-colors duration-200 ${
+              location.pathname === '/admissions' ? 'text-white' : ''
+            }`}
+          >
+            Admissions
+          </Link>
           <a
             href="#contact"
             className="hover:text-white transition-colors duration-200"
@@ -94,8 +102,8 @@ const Navbar = () => {
 
         {/* Desktop CTA Button */}
         <div className="hidden md:block">
-          <a
-            href="#admissions"
+          <Link
+            to="/admissions"
             className="
               px-5
               py-2.5
@@ -112,7 +120,7 @@ const Navbar = () => {
             "
           >
             Apply Now
-          </a>
+          </Link>
         </div>
 
         {/* Mobile Hamburger Toggle Button */}
@@ -210,6 +218,15 @@ const Navbar = () => {
           >
             Events
           </Link>
+          <Link
+            to="/admissions"
+            onClick={() => setIsOpen(false)}
+            className={`text-base font-medium transition-colors py-1 border-b border-white/5 ${
+              location.pathname === '/admissions' ? 'text-white' : 'text-white/80 hover:text-white'
+            }`}
+          >
+            Admissions
+          </Link>
           <a
             href="#contact"
             onClick={() => setIsOpen(false)}
@@ -217,8 +234,8 @@ const Navbar = () => {
           >
             Contact
           </a>
-          <a
-            href="#admissions"
+          <Link
+            to="/admissions"
             onClick={() => setIsOpen(false)}
             className="
               w-full
@@ -236,7 +253,7 @@ const Navbar = () => {
             "
           >
             Apply Now
-          </a>
+          </Link>
         </div>
       )}
     </header>

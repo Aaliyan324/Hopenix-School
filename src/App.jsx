@@ -11,6 +11,8 @@ import AdminLogin from './admin/AdminLogin'
 import AdminDashboard from './admin/AdminDashboard'
 import AdminEvents from './admin/AdminEvents'
 import AdminSettings from './admin/AdminSettings'
+import AdminAdmissions from './admin/AdminAdmissions'
+import Admissions from './Pages/Admissions'
 
 function App() {
   return (
@@ -23,6 +25,7 @@ function App() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="events" element={<AdminEvents />} />
+              <Route path="admissions" element={<AdminAdmissions />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
           </Route>
@@ -37,6 +40,7 @@ function App() {
                   <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/events" element={<Events />} />
+                    <Route path="/admissions" element={<Admissions />} />
                   </Routes>
                 </main>
                 <Footer />
