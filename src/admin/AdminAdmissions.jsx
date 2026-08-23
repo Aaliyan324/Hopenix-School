@@ -15,10 +15,13 @@ import {
   toggleAdmissionPublished,
   toggleAdmissionEnabled,
   formatAdmissionDate,
+  getAllApplications,
+  updateApplicationStatus,
+  deleteApplication,
 } from '../lib/admissions-service'
 import Modal from './Modal'
 
-const TABS = ['Overview', 'Hero', 'Status', 'Classes', 'Process', 'Documents', 'Requirements', 'Timeline', 'Fees', 'Contact']
+const TABS = ['Overview', 'Hero', 'Status', 'Classes', 'Process', 'Documents', 'Requirements', 'Timeline', 'Fees', 'Contact', 'Applications']
 
 const AdminAdmissions = () => {
   const { addToast } = useToast()
@@ -124,6 +127,7 @@ const AdminAdmissions = () => {
         )}
         {activeTab === 'Fees' && <FeesTab data={data} onSave={handleSave} />}
         {activeTab === 'Contact' && <ContactTab data={data} onSave={handleSave} />}
+        {activeTab === 'Applications' && <ApplicationsTab />}
       </div>
 
       {/* Edit Modal */}
@@ -242,7 +246,46 @@ const StatusTab = ({ data, onSave }) => {
             <span className="text-sm font-medium text-[var(--text)]">Show Application Button</span>
           </label>
           <Field label="Button Label" value={app.label} onChange={(v) => setApp({ ...app, label: v })} placeholder="Apply Now" />
-          <Field label="Application URL" value={app.url} onChange={(v) => setApp({ ...app, url: v })} placeholder="https://forms.google.com/... or leave empty for email/WhatsApp" />
+
+          <div>
+            <label className="block text-sm font-semibold text-[var(--text)] mb-2">Application Type</label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setApp({ ...app, type: 'internal', url: '' })}
+                className={`flex-1 px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${
+                  (app.type || 'internal') === 'internal'
+                    ? 'border-[var(--secondary)] bg-[var(--secondary-light)] text-[var(--secondary)]'
+                    : 'border-[var(--neutral-200)] text-[var(--text-secondary)] hover:bg-[var(--neutral-100)]'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  Built-in Form
+                </div>
+                <p className="text-xs text-[var(--text-muted)] mt-1">/admissions/apply</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setApp({ ...app, type: 'external' })}
+                className={`flex-1 px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${
+                  app.type === 'external'
+                    ? 'border-[var(--secondary)] bg-[var(--secondary-light)] text-[var(--secondary)]'
+                    : 'border-[var(--neutral-200)] text-[var(--text-secondary)] hover:bg-[var(--neutral-100)]'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  External URL
+                </div>
+                <p className="text-xs text-[var(--text-muted)] mt-1">Google Form, etc.</p>
+              </button>
+            </div>
+          </div>
+
+          {app.type === 'external' && (
+            <Field label="External Application URL" value={app.url} onChange={(v) => setApp({ ...app, url: v })} placeholder="https://forms.google.com/..." />
+          )}
         </div>
       </div>
       <SaveButton onClick={handleSave} />
@@ -674,6 +717,166 @@ const Field = ({ label, value, onChange, textarea, placeholder }) => (
     )}
   </div>
 )
+
+// ── Applications Tab ─────────────────────────────────────────
+
+const STATUS_OPTIONS = ['submitted', 'under_review', 'accepted', 'rejected', 'waitlisted']
+const STATUS_COLORS = {
+  submitted: 'bg-[var(--primary-light)] text-[var(--tertiary)]',
+  under_review: 'bg-[var(--warning-light)] text-[var(--warning)]',
+  accepted: 'bg-[var(--success-light)] text-[var(--success)]',
+  rejected: 'bg-[var(--error-light)] text-[var(--error)]',
+  waitlisted: 'bg-[var(--neutral-100)] text-[var(--text-muted)]',
+}
+
+const ApplicationsTab = () => {
+  const { addToast } = useToast()
+  const [apps, setApps] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('all')
+  const [expanded, setExpanded] = useState(null)
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
+
+  const load = () => {
+    setApps(getAllApplications())
+    setLoading(false)
+  }
+
+  useEffect(() => { load() }, [])
+
+  const handleStatusChange = (id, status) => {
+    updateApplicationStatus(id, status)
+    addToast(`Application ${status.replace('_', ' ')}`, 'success')
+    load()
+  }
+
+  const handleDelete = (id) => {
+    deleteApplication(id)
+    setDeleteConfirm(null)
+    addToast('Application deleted', 'success')
+    load()
+  }
+
+  const filtered = filter === 'all' ? apps : apps.filter((a) => a.status === filter)
+
+  if (loading) {
+    return <div className="text-center py-8"><div className="w-32 h-4 bg-[var(--neutral-200)] rounded-full animate-pulse mx-auto" /></div>
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 className="heading text-lg font-bold text-[var(--text)]">Applications</h3>
+          <p className="paragraph text-xs text-[var(--text-muted)]">{apps.length} total submission{apps.length !== 1 ? 's' : ''}</p>
+        </div>
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="px-4 py-2 rounded-xl border border-[var(--neutral-200)] bg-[var(--surface)] text-sm paragraph text-[var(--text)] focus:outline-none focus:border-[var(--secondary)] transition-colors"
+        >
+          <option value="all">All Status</option>
+          {STATUS_OPTIONS.map((s) => (
+            <option key={s} value={s}>{s.replace('_', ' ')}</option>
+          ))}
+        </select>
+      </div>
+
+      {apps.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-4xl mb-3">📝</div>
+          <p className="paragraph text-sm text-[var(--text-muted)]">No applications submitted yet.</p>
+          <p className="paragraph text-xs text-[var(--text-muted)] mt-1">Applications will appear here when students submit the form.</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <p className="paragraph text-sm text-[var(--text-muted)] text-center py-8">No applications match this filter.</p>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map((app) => (
+            <div key={app.id} className="bg-[var(--background)] border border-[var(--neutral-200)] rounded-xl overflow-hidden">
+              <button
+                onClick={() => setExpanded(expanded === app.id ? null : app.id)}
+                className="w-full flex items-center gap-3 p-4 text-left hover:bg-[var(--surface)] transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-[var(--text)] truncate">
+                    {app.studentFirstName} {app.studentLastName}
+                  </p>
+                  <p className="text-xs text-[var(--text-muted)]">
+                    {app.applyingForClass} &middot; {formatAdmissionDate(app.submittedAt?.split('T')[0])}
+                  </p>
+                </div>
+                <span className={`text-[10px] font-semibold uppercase px-2.5 py-1 rounded-full shrink-0 ${STATUS_COLORS[app.status] || STATUS_COLORS.submitted}`}>
+                  {app.status.replace('_', ' ')}
+                </span>
+                <svg className={`w-4 h-4 text-[var(--text-muted)] shrink-0 transition-transform ${expanded === app.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {expanded === app.id && (
+                <div className="px-4 pb-4 border-t border-[var(--neutral-200)] pt-4 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div><span className="text-[var(--text-muted)]">Student:</span> <span className="font-medium text-[var(--text)]">{app.studentFirstName} {app.studentLastName}</span></div>
+                    <div><span className="text-[var(--text-muted)]">DOB:</span> <span className="font-medium text-[var(--text)]">{formatAdmissionDate(app.studentDOB)}</span></div>
+                    <div><span className="text-[var(--text-muted)]">Gender:</span> <span className="font-medium text-[var(--text)]">{app.studentGender}</span></div>
+                    <div><span className="text-[var(--text-muted)]">Class:</span> <span className="font-medium text-[var(--text)]">{app.applyingForClass}</span></div>
+                    {app.previousSchool && <div><span className="text-[var(--text-muted)]">Previous School:</span> <span className="font-medium text-[var(--text)]">{app.previousSchool}</span></div>}
+                    <div><span className="text-[var(--text-muted)]">Guardian:</span> <span className="font-medium text-[var(--text)]">{app.parentFirstName} {app.parentLastName} ({app.relationship})</span></div>
+                    <div><span className="text-[var(--text-muted)]">Phone:</span> <span className="font-medium text-[var(--text)]">{app.parentPhone}</span></div>
+                    <div><span className="text-[var(--text-muted)]">Email:</span> <span className="font-medium text-[var(--text)]">{app.parentEmail}</span></div>
+                    <div><span className="text-[var(--text-muted)]">CNIC:</span> <span className="font-medium text-[var(--text)]">{app.parentCnic}</span></div>
+                    <div><span className="text-[var(--text-muted)]">Address:</span> <span className="font-medium text-[var(--text)]">{app.address}, {app.city}</span></div>
+                    {app.message && <div className="sm:col-span-2"><span className="text-[var(--text-muted)]">Message:</span> <span className="font-medium text-[var(--text)]">{app.message}</span></div>}
+                    <div><span className="text-[var(--text-muted)]">Ref ID:</span> <span className="font-mono font-medium text-[var(--text)]">{app.id}</span></div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-3 border-t border-[var(--neutral-200)]">
+                    <label className="text-xs font-semibold text-[var(--text-muted)] mr-1 self-center">Status:</label>
+                    {STATUS_OPTIONS.map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => handleStatusChange(app.id, s)}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                          app.status === s
+                            ? STATUS_COLORS[s]
+                            : 'bg-[var(--neutral-100)] text-[var(--text-muted)] hover:bg-[var(--neutral-200)]'
+                        }`}
+                      >
+                        {s.replace('_', ' ')}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setDeleteConfirm(app.id)}
+                      className="ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-[var(--error-light)] text-[var(--error)] hover:bg-[var(--error)]/20 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Delete confirmation */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setDeleteConfirm(null)} />
+          <div className="relative bg-[var(--surface)] border border-[var(--neutral-200)] rounded-2xl p-6 shadow-xl max-w-sm w-full text-center">
+            <div className="text-4xl mb-3">🗑️</div>
+            <p className="paragraph text-sm text-[var(--text-secondary)] mb-4">Delete this application? This cannot be undone.</p>
+            <div className="flex gap-3 justify-center">
+              <button onClick={() => setDeleteConfirm(null)} className="px-5 py-2.5 rounded-xl border border-[var(--neutral-200)] text-sm font-semibold text-[var(--text)] hover:bg-[var(--neutral-100)] transition-colors">Cancel</button>
+              <button onClick={() => handleDelete(deleteConfirm)} className="px-5 py-2.5 rounded-xl bg-[var(--error)] text-white text-sm font-semibold hover:bg-[var(--error)]/90 transition-colors">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 const SaveButton = ({ onClick }) => (
   <div className="flex justify-end pt-2 border-t border-[var(--neutral-200)]">

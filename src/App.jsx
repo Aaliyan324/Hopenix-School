@@ -13,6 +13,7 @@ import AdminEvents from './admin/AdminEvents'
 import AdminSettings from './admin/AdminSettings'
 import AdminAdmissions from './admin/AdminAdmissions'
 import Admissions from './Pages/Admissions'
+import AdmissionForm from './Pages/AdmissionForm'
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/events" element={<Events />} />
                     <Route path="/admissions" element={<Admissions />} />
+                    <Route path="/admissions/apply" element={<AdmissionForm />} />
                   </Routes>
                 </main>
                 <Footer />

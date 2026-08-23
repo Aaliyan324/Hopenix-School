@@ -240,3 +240,93 @@ export function useAdmissions() {
 
   return { admissions, loading, refresh }
 }
+
+// ── Application Submissions ─────────────────────────────────
+
+const APPLICATIONS_KEY = 'hopenix_admission_applications'
+
+function readApplications() {
+  try {
+    const raw = localStorage.getItem(APPLICATIONS_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch { /* ignore */ }
+  return []
+}
+
+function writeApplications(apps) {
+  localStorage.setItem(APPLICATIONS_KEY, JSON.stringify(apps))
+}
+
+/**
+ * Submit a new admission application.
+ */
+export function submitApplication(formData) {
+  const apps = readApplications()
+  const newApp = {
+    id: generateId('app'),
+    ...formData,
+    status: 'submitted',
+    submittedAt: new Date().toISOString(),
+  }
+  apps.push(newApp)
+  writeApplications(apps)
+  return newApp
+}
+
+/**
+ * Get all applications (admin use).
+ */
+export function getAllApplications() {
+  return readApplications().sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))
+}
+
+/**
+ * Update application status (admin use).
+ */
+export function updateApplicationStatus(id, status) {
+  const apps = readApplications()
+  const idx = apps.findIndex((a) => a.id === id)
+  if (idx === -1) throw new Error('Application not found')
+  apps[idx].status = status
+  apps[idx].updatedAt = new Date().toISOString()
+  writeApplications(apps)
+  return apps[idx]
+}
+
+/**
+ * Delete application (admin use).
+ */
+export function deleteApplication(id) {
+  const apps = readApplications()
+  const filtered = apps.filter((a) => a.id !== id)
+  if (filtered.length === apps.length) throw new Error('Application not found')
+  writeApplications(filtered)
+}
+
+/**
+ * React hook: fetch applications for admin.
+ */
+export function useApplications() {
+  const [applications, setApplications] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const refresh = useCallback(() => {
+    const data = getAllApplications()
+    setApplications(data)
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    refresh()
+
+    const onStorage = (e) => {
+      if (e.key === APPLICATIONS_KEY) {
+        refresh()
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [refresh])
+
+  return { applications, loading, refresh }
+}

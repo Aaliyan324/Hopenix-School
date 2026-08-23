@@ -26,6 +26,7 @@ const defaultAdmissions = {
     enabled: true,
     label: 'Apply Now',
     url: '',
+    type: 'internal', // 'internal' | 'external'
   },
 
   classes: [

@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useAdmissions, formatAdmissionDate } from '../lib/admissions-service'
@@ -150,7 +151,10 @@ const Admissions = () => {
 
   const { hero, status, application, classes, process, documents, requirements, timeline, fees, contact } = admissions
   const isOpen = status?.label?.toLowerCase().includes('open')
-  const applicationUrl = application?.url || (contact?.whatsapp ? `https://wa.me/${contact.whatsapp.replace(/\D/g, '')}` : contact?.email ? `mailto:${contact.email}` : '#')
+  const isInternal = (application?.type || 'internal') === 'internal'
+  const applicationUrl = isInternal
+    ? '/admissions/apply'
+    : (application?.url || (contact?.whatsapp ? `https://wa.me/${contact.whatsapp.replace(/\D/g, '')}` : contact?.email ? `mailto:${contact.email}` : '/admissions/apply'))
 
   return (
     <section
@@ -176,14 +180,12 @@ const Admissions = () => {
 
         <div className="adm-hero-cta flex flex-wrap gap-4 justify-center">
           {application?.enabled && (
-            <a
-              href={applicationUrl}
-              target={application?.url?.startsWith('http') ? '_blank' : undefined}
-              rel={application?.url?.startsWith('http') ? 'noopener noreferrer' : undefined}
+            <Link
+              to={applicationUrl}
               className="px-8 py-3.5 rounded-full bg-[var(--secondary)] text-white font-bold text-sm sm:text-base hover:bg-[var(--secondary-hover)] transition-colors duration-300 shadow-md active:scale-95"
             >
               {application?.label || 'Apply Now'}
-            </a>
+            </Link>
           )}
           <a
             href="#admission-process"
@@ -240,14 +242,12 @@ const Admissions = () => {
                   {cls.seatsAvailable && <span>Seats: {cls.seatsAvailable}</span>}
                 </div>
                 {cls.status === 'open' && application?.enabled && (
-                  <a
-                    href={cls.applicationUrl || applicationUrl}
-                    target={(cls.applicationUrl || application?.url)?.startsWith('http') ? '_blank' : undefined}
-                    rel={(cls.applicationUrl || application?.url)?.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  <Link
+                    to={cls.applicationUrl || applicationUrl}
                     className="w-full text-center px-5 py-2.5 rounded-full bg-[var(--secondary)] text-white text-sm font-semibold hover:bg-[var(--secondary-hover)] transition-colors active:scale-95"
                   >
                     Apply Now
-                  </a>
+                  </Link>
                 )}
               </div>
             ))}
@@ -443,14 +443,12 @@ const Admissions = () => {
           <p className="paragraph text-base sm:text-lg text-white/80 max-w-xl mx-auto mb-8">
             Take the first step toward an exciting educational journey.
           </p>
-          <a
-            href={applicationUrl}
-            target={application?.url?.startsWith('http') ? '_blank' : undefined}
-            rel={application?.url?.startsWith('http') ? 'noopener noreferrer' : undefined}
+          <Link
+            to={applicationUrl}
             className="inline-block px-10 py-4 rounded-full bg-white text-[var(--secondary)] font-bold text-base sm:text-lg hover:bg-white/90 transition-colors duration-300 shadow-lg active:scale-95"
           >
             Start Your Application
-          </a>
+          </Link>
         </div>
       )}
     </section>

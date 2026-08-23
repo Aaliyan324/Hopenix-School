@@ -233,7 +233,8 @@ const Admissions = () => {
   const { status, application, process: processSteps } = admissions
   const isOpen = status?.label?.toLowerCase().includes('open')
   const session = status?.session || '2026–27'
-  const applicationUrl = application?.url || '/admissions'
+  const isInternal = (application?.type || 'internal') === 'internal'
+  const applicationUrl = isInternal ? '/admissions/apply' : (application?.url || '/admissions')
   const displayProcess = (processSteps || []).slice(0, 3)
 
   return (
@@ -429,7 +430,7 @@ const Admissions = () => {
             </div>
 
             <Link
-              to="/admissions"
+              to={applicationUrl}
               className="
                 adm-button
                 w-full
