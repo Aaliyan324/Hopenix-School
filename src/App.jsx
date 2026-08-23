@@ -6,17 +6,21 @@ import Academics from './sections/Academics'
 import Admissions from './sections/Admissions'
 import Testimonials from './sections/Testimonials'
 import ContactUs from './sections/ContactUs'
+import Footer from './components/Footer'
+import Navbar from './components/Navbar'
 
 function App() {
 
   return (
     <>
-      <Hero/>
-      <AboutUs/>
-      <Academics/>
-      <Admissions/>
-      <Testimonials/>
-      <ContactUs/>
+      <Navbar />
+      <Hero />
+      <AboutUs />
+      <Academics />
+      <Admissions />
+      <Testimonials />
+      <ContactUs />
+      <Footer />
     </>
   )
 }
