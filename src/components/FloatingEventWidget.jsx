@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import upcomingEvents from '../data/events'
+import { useEvents } from '../lib/events-service'
 
 const FloatingEventWidget = () => {
   const [isVisible, setIsVisible] = useState(false)
   const [isDismissed, setIsDismissed] = useState(false)
+  const { events } = useEvents()
 
-  const nextEvent = upcomingEvents[0]
+  const nextEvent = events[0]
 
   useEffect(() => {
     // Delay entrance so it doesn't compete with page-load animations
@@ -89,7 +90,7 @@ const FloatingEventWidget = () => {
           {nextEvent.title}
         </h3>
         <p className="paragraph text-xs sm:text-sm text-[var(--text-secondary)] mb-3">
-          {nextEvent.date.month} {nextEvent.date.day}, {nextEvent.date.year} · {nextEvent.time}
+          {nextEvent.date.month} {nextEvent.date.day}, {nextEvent.date.year} &middot; {nextEvent.time}
         </p>
 
         {/* CTA */}

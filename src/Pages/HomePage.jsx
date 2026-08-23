@@ -5,20 +5,18 @@ import Admissions from '../HomePageSections/Admissions'
 import Contact from '../HomePageSections/ContactUs'
 import Testimonials from '../HomePageSections/Testimonials'
 import UpcomingEvents from '../HomePageSections/UpcomingEvents'
-import FloatingEventWidget from '../components/FloatingEventWidget'
 import FloatingQuickActions from '../components/FloatingQuickActions'
 
 const HomePage = () => {
   return (
     <>
         <Hero/>
+        <UpcomingEvents/>
         <AboutUs/>
         <Academics/>
         <Admissions/>
-        <UpcomingEvents/>
         <Testimonials/>
         <Contact/>
-        <FloatingEventWidget/>
         <FloatingQuickActions/>
     </>
   )

@@ -1,18 +1,20 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import upcomingEvents from '../data/events'
+import { useEvents } from '../lib/events-service'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const Events = () => {
   const sectionRef = useRef(null)
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+  const { events: upcomingEvents, loading } = useEvents()
 
-  // Nearest event countdown target (first event in centralized data)
+  // Nearest event countdown target (first event in data)
   const nearestEvent = upcomingEvents[0]
 
   useEffect(() => {
+    if (!nearestEvent?.dateString) return
     const targetTime = new Date(nearestEvent.dateString).getTime()
 
     const updateCountdown = () => {
@@ -32,9 +34,10 @@ const Events = () => {
     updateCountdown()
     const interval = setInterval(updateCountdown, 1000)
     return () => clearInterval(interval)
-  }, [nearestEvent.dateString])
+  }, [nearestEvent?.dateString])
 
   useLayoutEffect(() => {
+    if (loading || upcomingEvents.length === 0) return
     const section = sectionRef.current
     if (!section) return
 
@@ -105,7 +108,29 @@ const Events = () => {
     }, section)
 
     return () => ctx.revert()
-  }, [])
+  }, [loading, upcomingEvents.length])
+
+  if (loading) {
+    return (
+      <section className="relative max-w-7xl mx-auto px-6 py-16 sm:py-24 text-[var(--text)]">
+        <div className="mt-14 flex flex-col items-center text-center mb-12">
+          <div className="w-32 h-4 bg-[var(--neutral-200)] rounded-full animate-pulse mb-4" />
+          <div className="w-64 h-8 bg-[var(--neutral-200)] rounded-full animate-pulse mb-3" />
+          <div className="w-48 h-4 bg-[var(--neutral-200)] rounded-full animate-pulse" />
+        </div>
+      </section>
+    )
+  }
+
+  if (!nearestEvent) {
+    return (
+      <section className="relative max-w-7xl mx-auto px-6 py-16 sm:py-24 text-[var(--text)]">
+        <div className="mt-14 flex flex-col items-center text-center">
+          <p className="paragraph text-lg text-[var(--text-muted)]">No upcoming events at this time.</p>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section

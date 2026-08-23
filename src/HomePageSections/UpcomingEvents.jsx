@@ -2,14 +2,16 @@ import { useLayoutEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import upcomingEvents from '../data/events'
+import { useEvents } from '../lib/events-service'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const UpcomingEvents = () => {
   const sectionRef = useRef(null)
+  const { events: upcomingEvents, loading } = useEvents()
 
   useLayoutEffect(() => {
+    if (loading || upcomingEvents.length === 0) return
     const section = sectionRef.current
     if (!section) return
 
@@ -48,7 +50,10 @@ const UpcomingEvents = () => {
     }, section)
 
     return () => ctx.revert()
-  }, [])
+  }, [loading, upcomingEvents.length])
+
+  // Don't render if loading or no events
+  if (loading || upcomingEvents.length === 0) return null
 
   // First event is the featured/next event, rest are smaller cards
   const featuredEvent = upcomingEvents[0]
