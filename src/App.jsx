@@ -4,6 +4,7 @@ import Hero from './sections/Hero'
 import AboutUs from './sections/AboutUs'
 import Academics from './sections/Academics'
 import Admissions from './sections/Admissions'
+import Testimonials from './sections/Testimonials'
 
 function App() {
 
@@ -13,6 +14,7 @@ function App() {
       <AboutUs/>
       <Academics/>
       <Admissions/>
+      <Testimonials/>
     </>
   )
 }
