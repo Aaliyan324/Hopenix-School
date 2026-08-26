@@ -1,6 +1,6 @@
-import prisma from './lib/db.js'
+import prisma from '../db.js'
 import bcrypt from 'bcryptjs'
-import { verifyAuth, sendJson, handleAuthError, handleForbidden, handleBadRequest, handleServerError } from './lib/auth.js'
+import { verifyAuth, sendJson, handleAuthError, handleForbidden, handleBadRequest, handleServerError } from '../auth.js'
 
 export default async function handler(req, res) {
   const auth = verifyAuth(req)

@@ -1,4 +1,4 @@
-import { verifyAuth, sendJson, handleAuthError, handleBadRequest, handleServerError } from './lib/auth.js'
+import { verifyAuth, sendJson, handleAuthError, handleBadRequest, handleServerError } from '../auth.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

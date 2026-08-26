@@ -1,5 +1,5 @@
-import prisma from './lib/db.js'
-import { verifyAuth, sendJson, handleAuthError, handleForbidden, handleServerError } from './lib/auth.js'
+import prisma from '../db.js'
+import { verifyAuth, sendJson, handleAuthError, handleForbidden, handleServerError } from '../auth.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {

@@ -76,7 +76,9 @@ After running `node prisma/seed.js`, the default initial accounts created are:
 
 ## 4. System Architecture & Vercel API Endpoints
 
-The backend is built around **12 serverless functions** located in `/api/`:
+To remain strictly within Vercel's **Hobby Plan limit** (maximum 12 Serverless Functions per deployment), all API endpoints are consolidated into a **single Vercel Serverless Function entrypoint** (`/api/index.js`). Individual route handlers are organized in `/api/lib/handlers/` and routed internally.
+
+This guarantees that the entire backend counts as **1 single Serverless Function** on Vercel deployment.
 
 | Endpoint | Method(s) | Description |
 | :--- | :--- | :--- |

@@ -32,12 +32,9 @@ function vercelApiDevPlugin() {
           const pathname = url.pathname // e.g. /api/auth
           const routeName = pathname.replace('/api/', '').split('/')[0] // 'auth'
 
-          if (!routeName) return next()
+          const indexModule = await server.ssrLoadModule(path.resolve(__dirname, 'api/index.js'))
 
-          const modulePath = path.resolve(__dirname, `api/${routeName}.js`)
-          const handlerModule = await server.ssrLoadModule(modulePath)
-
-          if (handlerModule && typeof handlerModule.default === 'function') {
+          if (indexModule && typeof indexModule.default === 'function') {
             req.query = Object.fromEntries(url.searchParams.entries())
 
             if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
@@ -54,7 +51,7 @@ function vercelApiDevPlugin() {
             }
 
             expressLikeRes(res)
-            return await handlerModule.default(req, res)
+            return await indexModule.default(req, res)
           }
         } catch (err) {
           console.error('Vite API Dev Plugin Error:', err)

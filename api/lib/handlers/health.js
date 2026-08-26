@@ -1,5 +1,5 @@
-import prisma from './lib/db.js'
-import { sendJson } from './lib/auth.js'
+import prisma from '../db.js'
+import { sendJson } from '../auth.js'
 
 export default async function handler(req, res) {
   try {

@@ -1,5 +1,5 @@
-import prisma from './lib/db.js'
-import { verifyAuth, sendJson, handleAuthError, handleServerError } from './lib/auth.js'
+import prisma from '../db.js'
+import { verifyAuth, sendJson, handleAuthError, handleServerError } from '../auth.js'
 
 export default async function handler(req, res) {
   const auth = verifyAuth(req)
