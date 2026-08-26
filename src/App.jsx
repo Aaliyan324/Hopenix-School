@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
+import { BrowserRouter as Router, Routes as RouterRoutes, Route as RouterRoute } from 'react-router-dom'
 import './App.css'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
@@ -15,69 +15,95 @@ import NewsDetails from './Pages/NewsDetails'
 import Gallery from './Pages/Gallery'
 import Admissions from './Pages/Admissions'
 import AdmissionForm from './Pages/AdmissionForm'
+import DailyDiary from './Pages/DailyDiary'
 import Contact from './Pages/Contact'
 import FAQ from './Pages/FAQ'
 import PrivacyPolicy from './Pages/PrivacyPolicy'
 import Terms from './Pages/Terms'
 import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
+
+// Admin Views
 import AdminLayout from './admin/AdminLayout'
 import AdminLogin from './admin/AdminLogin'
 import AdminDashboard from './admin/AdminDashboard'
+import AdminTeachers from './admin/AdminTeachers'
+import AdminClasses from './admin/AdminClasses'
+import AdminDiary from './admin/AdminDiary'
 import AdminEvents from './admin/AdminEvents'
 import AdminSettings from './admin/AdminSettings'
 import AdminAdmissions from './admin/AdminAdmissions'
 
+// Teacher Views
+import TeacherLayout from './teacher/TeacherLayout'
+import TeacherDashboard from './teacher/TeacherDashboard'
+import TeacherDiaryManager from './teacher/TeacherDiaryManager'
+import TeacherProfile from './teacher/TeacherProfile'
+
 function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <ToastProvider>
-        <Routes>
-          {/* Admin — all routes share one AuthProvider */}
-          <Route element={<AuthProvider><Outlet /></AuthProvider>}>
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="events" element={<AdminEvents />} />
-              <Route path="admissions" element={<AdminAdmissions />} />
-              <Route path="settings" element={<AdminSettings />} />
-            </Route>
-          </Route>
+        <AuthProvider>
+          <RouterRoutes>
+            {/* Unified Staff / Admin Login */}
+            <RouterRoute path="/admin/login" element={<AdminLogin />} />
+            <RouterRoute path="/teacher/login" element={<AdminLogin />} />
 
-          {/* Public website — navbar + footer */}
-          <Route
-            path="/*"
-            element={
-              <>
-                <Navbar />
-                <main>
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/academics" element={<Academics />} />
-                    <Route path="/facilities" element={<Facilities />} />
-                    <Route path="/student-life" element={<StudentLife />} />
-                    <Route path="/faculty" element={<Faculty />} />
-                    <Route path="/events" element={<Events />} />
-                    <Route path="/events/:id" element={<EventDetails />} />
-                    <Route path="/news" element={<News />} />
-                    <Route path="/news/:id" element={<NewsDetails />} />
-                    <Route path="/gallery" element={<Gallery />} />
-                    <Route path="/admissions" element={<Admissions />} />
-                    <Route path="/admissions/apply" element={<AdmissionForm />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/faq" element={<FAQ />} />
-                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                    <Route path="/terms" element={<Terms />} />
-                  </Routes>
-                </main>
-                <Footer />
-              </>
-            }
-          />
-        </Routes>
+            {/* Teacher Portal */}
+            <RouterRoute path="/teacher" element={<TeacherLayout />}>
+              <RouterRoute index element={<TeacherDashboard />} />
+              <RouterRoute path="diary" element={<TeacherDiaryManager />} />
+              <RouterRoute path="profile" element={<TeacherProfile />} />
+            </RouterRoute>
+
+            {/* Admin Control Panel */}
+            <RouterRoute path="/admin" element={<AdminLayout />}>
+              <RouterRoute index element={<AdminDashboard />} />
+              <RouterRoute path="teachers" element={<AdminTeachers />} />
+              <RouterRoute path="classes" element={<AdminClasses />} />
+              <RouterRoute path="diary" element={<AdminDiary />} />
+              <RouterRoute path="events" element={<AdminEvents />} />
+              <RouterRoute path="admissions" element={<AdminAdmissions />} />
+              <RouterRoute path="settings" element={<AdminSettings />} />
+            </RouterRoute>
+
+            {/* Public Website Routes (Navbar + Footer) */}
+            <RouterRoute
+              path="/*"
+              element={
+                <>
+                  <Navbar />
+                  <main>
+                    <RouterRoutes>
+                      <RouterRoute path="/" element={<HomePage />} />
+                      <RouterRoute path="/about" element={<About />} />
+                      <RouterRoute path="/academics" element={<Academics />} />
+                      <RouterRoute path="/facilities" element={<Facilities />} />
+                      <RouterRoute path="/student-life" element={<StudentLife />} />
+                      <RouterRoute path="/faculty" element={<Faculty />} />
+                      <RouterRoute path="/events" element={<Events />} />
+                      <RouterRoute path="/events/:id" element={<EventDetails />} />
+                      <RouterRoute path="/news" element={<News />} />
+                      <RouterRoute path="/news/:id" element={<NewsDetails />} />
+                      <RouterRoute path="/gallery" element={<Gallery />} />
+                      <RouterRoute path="/daily-diary" element={<DailyDiary />} />
+                      <RouterRoute path="/admissions" element={<Admissions />} />
+                      <RouterRoute path="/admissions/apply" element={<AdmissionForm />} />
+                      <RouterRoute path="/contact" element={<Contact />} />
+                      <RouterRoute path="/faq" element={<FAQ />} />
+                      <RouterRoute path="/privacy-policy" element={<PrivacyPolicy />} />
+                      <RouterRoute path="/terms" element={<Terms />} />
+                    </RouterRoutes>
+                  </main>
+                  <Footer />
+                </>
+              }
+            />
+          </RouterRoutes>
+        </AuthProvider>
       </ToastProvider>
-    </BrowserRouter>
+    </Router>
   )
 }
 

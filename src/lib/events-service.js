@@ -1,113 +1,9 @@
-/**
- * Unified event data service.
- *
- * - Public site: reads from localStorage, falls back to static data.
- * - Admin panel: full CRUD via localStorage.
- *
- * All public components should import `useEvents` from this file.
- */
-
 import { useState, useEffect, useCallback } from 'react'
+import { apiGet, apiPost, apiPut, apiDelete } from './api-client'
 import staticEvents from '../data/events'
-
-const EVENTS_KEY = 'hopenix_events'
 
 // ── Helpers ─────────────────────────────────────────────────
 
-function generateId() {
-  return 'evt_' + crypto.getRandomValues(new Uint32Array(1))[0].toString(36)
-}
-
-function buildSlug(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-}
-
-// ── localStorage CRUD ───────────────────────────────────────
-
-function readEvents() {
-  try {
-    const raw = localStorage.getItem(EVENTS_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
-
-  // Seed from static data on first access
-  const seeded = staticEvents.map((e) => ({
-    id: e.id,
-    title: e.title,
-    slug: buildSlug(e.title),
-    description: e.description || '',
-    shortDescription: e.shortDescription || '',
-    date: e.dateString ? e.dateString.split('T')[0] : '',
-    time: e.time || '',
-    location: e.location || '',
-    category: e.category || 'Other',
-    image: e.image || '',
-    featured: false,
-    published: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }))
-  localStorage.setItem(EVENTS_KEY, JSON.stringify(seeded))
-  return seeded
-}
-
-function writeEvents(events) {
-  localStorage.setItem(EVENTS_KEY, JSON.stringify(events))
-}
-
-export function getAllEvents() {
-  return readEvents()
-}
-
-export async function createEvent(event) {
-  const events = readEvents()
-  const now = new Date().toISOString()
-  const newEvent = {
-    id: generateId(),
-    slug: buildSlug(event.title),
-    createdAt: now,
-    updatedAt: now,
-    featured: false,
-    published: false,
-    ...event,
-  }
-  events.push(newEvent)
-  writeEvents(events)
-  return newEvent
-}
-
-export async function updateEvent(id, updates) {
-  const events = readEvents()
-  const idx = events.findIndex((e) => e.id === id)
-  if (idx === -1) throw new Error('Event not found')
-  events[idx] = { ...events[idx], ...updates, updatedAt: new Date().toISOString() }
-  writeEvents(events)
-  return events[idx]
-}
-
-export async function deleteEvent(id) {
-  const events = readEvents()
-  const filtered = events.filter((e) => e.id !== id)
-  if (filtered.length === events.length) throw new Error('Event not found')
-  writeEvents(filtered)
-}
-
-export async function togglePublish(id, published) {
-  return updateEvent(id, { published })
-}
-
-export async function toggleFeatured(id, featured) {
-  return updateEvent(id, { featured })
-}
-
-// ── Date utilities ──────────────────────────────────────────
-
-/**
- * Parse an ISO date string into display parts.
- */
 export function parseEventDate(dateStr) {
   if (!dateStr) return { month: '', day: '', year: '', dateObj: new Date(null) }
   const d = new Date(dateStr)
@@ -120,9 +16,6 @@ export function parseEventDate(dateStr) {
   }
 }
 
-/**
- * Compute event status based on date.
- */
 export function getEventStatus(dateStr) {
   if (!dateStr) return 'upcoming'
   const now = new Date()
@@ -137,67 +30,104 @@ export function getEventStatus(dateStr) {
   return 'past'
 }
 
-/**
- * Normalize an event to the display format used by existing components.
- */
-function normalizeEvent(event) {
-  const parsed = parseEventDate(event.date)
+function normalizeEvent(e) {
+  const dateStr = e.eventDate || e.date || ''
+  const parsed = parseEventDate(dateStr)
   return {
-    ...event,
-    dateString: event.date,
+    id: e.id,
+    title: e.title,
+    description: e.description || '',
+    shortDescription: e.description ? e.description.slice(0, 120) : '',
+    dateString: dateStr,
     date: { month: parsed.month, day: parsed.day, year: parsed.year },
-    shortDescription: event.shortDescription || event.description?.slice(0, 120) || '',
+    eventDate: dateStr,
+    location: e.location || '',
+    image: e.imageUrl || e.image || '',
+    imageUrl: e.imageUrl || e.image || '',
+    published: e.published !== undefined ? e.published : true,
+    featured: e.featured || false,
+    createdAt: e.createdAt,
   }
 }
 
-// ── Public fetch ────────────────────────────────────────────
+// ── API Operations (SQL) ────────────────────────────────────
 
-/**
- * Fetch published events for the public website.
- */
-export function fetchPublicEvents() {
-  const events = readEvents()
-  return events
-    .filter((e) => e.published)
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
-    .map(normalizeEvent)
+export async function getAllEvents() {
+  try {
+    const res = await apiGet('/api/events')
+    if (res.success && Array.isArray(res.events)) {
+      return res.events.map(normalizeEvent)
+    }
+  } catch (err) {
+    console.warn('API events fetch fallback:', err.message)
+  }
+
+  // Static fallback if API is not yet seeded/connected
+  return staticEvents.map((e) => normalizeEvent({
+    id: e.id,
+    title: e.title,
+    description: e.description,
+    eventDate: e.dateString ? e.dateString.split('T')[0] : '2026-09-15',
+    location: e.location,
+    imageUrl: e.image,
+    published: true,
+  }))
 }
 
-// ── React hook ──────────────────────────────────────────────
+export async function createEvent(event) {
+  const res = await apiPost('/api/events', {
+    title: event.title,
+    description: event.description,
+    eventDate: event.date || event.eventDate,
+    location: event.location,
+    imageUrl: event.image || event.imageUrl,
+    published: event.published !== undefined ? event.published : true,
+  })
+  return normalizeEvent(res.event)
+}
 
-/**
- * React hook: fetch published events for the public site.
- * Returns { events, loading, refresh }.
- */
+export async function updateEvent(id, updates) {
+  const payload = {
+    id,
+    ...(updates.title && { title: updates.title }),
+    ...(updates.description && { description: updates.description }),
+    ...((updates.date || updates.eventDate) && { eventDate: updates.date || updates.eventDate }),
+    ...(updates.location !== undefined && { location: updates.location }),
+    ...((updates.image || updates.imageUrl) !== undefined && { imageUrl: updates.image || updates.imageUrl }),
+    ...(updates.published !== undefined && { published: updates.published }),
+  }
+  const res = await apiPut('/api/events', payload)
+  return normalizeEvent(res.event)
+}
+
+export async function deleteEvent(id) {
+  return apiDelete('/api/events', { id })
+}
+
+export async function togglePublish(id, published) {
+  return updateEvent(id, { published })
+}
+
+export async function toggleFeatured(id, featured) {
+  return updateEvent(id, { featured })
+}
+
+// ── React Hook ──────────────────────────────────────────────
+
 export function useEvents() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const refresh = useCallback(() => {
+  const refresh = useCallback(async () => {
     setLoading(true)
-    const data = fetchPublicEvents()
+    const data = await getAllEvents()
     setEvents(data)
     setLoading(false)
   }, [])
 
   useEffect(() => {
-    function load() {
-      const data = fetchPublicEvents()
-      setEvents(data)
-      setLoading(false)
-    }
-    load()
-
-    // Re-sync when another tab modifies events
-    const onStorage = (e) => {
-      if (e.key === EVENTS_KEY) {
-        const fresh = fetchPublicEvents()
-        setEvents(fresh)
-      }
-    }
-    window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
-  }, [])
+    refresh()
+  }, [refresh])
 
   return { events, loading, refresh }
 }

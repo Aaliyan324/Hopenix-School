@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String          @id @default(cuid())
+  name         String
+  email        String          @unique
+  passwordHash String
+  role         String          @default("TEACHER") // "ADMIN" | "TEACHER"
+  status       String          @default("ACTIVE")  // "ACTIVE" | "INACTIVE"
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  teacher      Teacher?
+}
+
+model Teacher {
+  id          String              @id @default(cuid())
+  userId      String              @unique
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeId  String              @unique
+  phone       String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  assignments TeacherAssignment[]
+  diaries     Diary[]
+}
+
+model Class {
+  id           String              @id @default(cuid())
+  name         String              @unique
+  displayOrder Int                 @default(0)
+  createdAt    DateTime            @default(now())
+  sections     Section[]
+  assignments  TeacherAssignment[]
+  diaries      Diary[]
+}
+
+model Section {
+  id          String              @id @default(cuid())
+  classId     String
+  class       Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
+  name        String
+  createdAt   DateTime            @default(now())
+  assignments TeacherAssignment[]
+  diaries     Diary[]
+
+  @@unique([classId, name])
+}
+
+model Subject {
+  id          String              @id @default(cuid())
+  name        String              @unique
+  createdAt   DateTime            @default(now())
+  assignments TeacherAssignment[]
+  diaries     Diary[]
+}
+
+model TeacherAssignment {
+  id        String   @id @default(cuid())
+  teacherId String
+  teacher   Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  sectionId String
+  section   Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([teacherId, classId, sectionId, subjectId])
+}
+
+model Diary {
+  id            String   @id @default(cuid())
+  teacherId     String
+  teacher       Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classId       String
+  class         Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  sectionId     String
+  section       Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subjectId     String
+  subject       Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  date          String   // ISO YYYY-MM-DD
+  homework      String
+  diary         String?
+  notes         String?
+  attachmentUrl String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([date, classId, sectionId])
+  @@index([teacherId])
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  eventDate   String
+  location    String?
+  imageUrl    String?
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Admission {
+  id               String   @id @default(cuid())
+  studentName      String
+  parentName       String
+  phone            String
+  email            String?
+  classApplyingFor String
+  message          String?
+  status           String   @default("PENDING") // PENDING, REVIEWING, APPROVED, REJECTED
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Setting {
+  id           String   @id @default("school_settings")
+  schoolName   String   @default("Hopenix School")
+  contactEmail String?
+  contactPhone String?
+  address      String?
+  updatedAt    DateTime @updatedAt
+}

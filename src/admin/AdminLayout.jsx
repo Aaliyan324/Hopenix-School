@@ -12,11 +12,27 @@ const navItems = [
     ),
   },
   {
-    to: '/admin/events',
-    label: 'Events',
+    to: '/admin/teachers',
+    label: 'Teachers',
     icon: (
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
-        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+    ),
+  },
+  {
+    to: '/admin/classes',
+    label: 'Classes & Subjects',
+    icon: (
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
+        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+    ),
+  },
+  {
+    to: '/admin/diary',
+    label: 'Daily Diary',
+    icon: (
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
+        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
     ),
   },
   {
@@ -24,7 +40,15 @@ const navItems = [
     label: 'Admissions',
     icon: (
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
-        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    ),
+  },
+  {
+    to: '/admin/events',
+    label: 'Events',
+    icon: (
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
+        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
     ),
   },
   {
@@ -38,13 +62,19 @@ const navItems = [
 ]
 
 const AdminLayout = () => {
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, role, logout } = useAuth()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Redirect to login if not authenticated
+  // Redirect if not logged in
   if (!isAuthenticated) {
     navigate('/admin/login', { replace: true })
+    return null
+  }
+
+  // If logged in user is a TEACHER, redirect to teacher portal
+  if (role === 'TEACHER') {
+    navigate('/teacher', { replace: true })
     return null
   }
 
@@ -69,7 +99,7 @@ const AdminLayout = () => {
           <h1 className="heading text-lg font-black uppercase tracking-wider text-[var(--text)]">
             Admin Panel
           </h1>
-          <p className="paragraph text-xs text-[var(--text-muted)] mt-1">Hopenix School</p>
+          <p className="paragraph text-xs text-[var(--text-muted)] mt-1">Hopenix School System</p>
         </div>
 
         {/* Navigation */}
@@ -84,17 +114,25 @@ const AdminLayout = () => {
           ))}
         </nav>
 
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--error-light)] hover:text-[var(--error)] transition-colors duration-200 mt-auto"
-        >
-          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          Logout
-        </button>
+        {/* Switch & Logout */}
+        <div className="mt-auto space-y-2 pt-4 border-t border-[var(--neutral-200)]">
+          <NavLink
+            to="/teacher"
+            className="flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition"
+          >
+            Switch to Teacher View
+          </NavLink>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--error-light)] hover:text-[var(--error)] transition-colors duration-200 w-full"
+          >
+            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
+          </button>
+        </div>
       </aside>
 
       {/* Mobile sidebar overlay */}
@@ -104,7 +142,7 @@ const AdminLayout = () => {
           <aside className="relative w-72 h-full bg-[var(--surface)] p-6 flex flex-col shadow-xl">
             <div className="flex items-center justify-between mb-8">
               <h1 className="heading text-lg font-black uppercase tracking-wider text-[var(--text)]">
-                Admin
+                Admin Panel
               </h1>
               <button
                 onClick={() => setSidebarOpen(false)}

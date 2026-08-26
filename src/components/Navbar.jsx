@@ -34,6 +34,7 @@ const navLinks = [
   { label: 'Facilities', to: '/facilities' },
   { label: 'Events', to: '/events' },
   { label: 'News', to: '/news' },
+  { label: 'Daily Diary', to: '/daily-diary' },
   { label: 'Admissions', to: '/admissions' },
   { label: 'Contact', to: '/contact' },
 ]
