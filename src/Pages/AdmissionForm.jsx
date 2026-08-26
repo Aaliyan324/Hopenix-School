@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useAdmissions, submitApplication } from '../lib/admissions-service'
+import apiClient from '../lib/apiClient'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -97,7 +98,7 @@ const AdmissionForm = () => {
     return errs
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length > 0) {
@@ -108,10 +109,23 @@ const AdmissionForm = () => {
 
     setSubmitting(true)
     try {
-      const app = submitApplication(form)
-      setApplicationId(app.id)
-      setSubmitted(true)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      const studentFullName = `${form.studentFirstName} ${form.studentLastName}`.trim()
+      const parentFullName = `${form.parentFirstName} ${form.parentLastName}`.trim()
+
+      const res = await apiClient.post('/api/admissions', {
+        studentName: studentFullName,
+        parentName: parentFullName,
+        phone: form.parentPhone,
+        email: form.parentEmail,
+        classApplyingFor: form.applyingForClass,
+        message: form.message ? `${form.message} (City: ${form.city})` : `CNIC: ${form.parentCnic}, City: ${form.city}`,
+      })
+
+      if (res.success && res.data) {
+        setApplicationId(res.data.id || 'ADM-' + Math.floor(1000 + Math.random() * 9000))
+        setSubmitted(true)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
     } catch (err) {
       setErrors({ _form: err.message || 'Something went wrong. Please try again.' })
     } finally {

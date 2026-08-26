@@ -1,183 +1,142 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { getAllEvents } from '../lib/events-service'
-import { parseEventDate, getEventStatus } from '../lib/events-service'
+import apiClient from '../lib/apiClient'
 
 const AdminDashboard = () => {
-  const [events, setEvents] = useState([])
+  const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let cancelled = false
-    async function load() {
-      const data = getAllEvents()
-      if (!cancelled) {
-        setEvents(data.sort((a, b) => new Date(a.date) - new Date(b.date)))
+    async function loadStats() {
+      try {
+        const res = await apiClient.get('/api/admin')
+        if (res.success) {
+          setStats(res.data)
+        }
+      } catch (err) {
+        console.error('Failed to load admin stats:', err)
+      } finally {
         setLoading(false)
       }
     }
-    load()
-    return () => { cancelled = true }
+    loadStats()
   }, [])
-
-  // Compute stats
-  const stats = {
-    total: events.length,
-    published: events.filter((e) => e.published).length,
-    drafts: events.filter((e) => !e.published).length,
-    upcoming: events.filter((e) => getEventStatus(e.date) === 'upcoming').length,
-    past: events.filter((e) => getEventStatus(e.date) === 'past').length,
-  }
-
-  const nextEvent = events.find((e) => getEventStatus(e.date) === 'upcoming' && e.published)
-  const nextEventDate = nextEvent ? parseEventDate(nextEvent.date) : null
-
-  const statCards = [
-    { label: 'Total Events', value: stats.total, color: 'var(--text)' },
-    { label: 'Published', value: stats.published, color: 'var(--success)' },
-    { label: 'Drafts', value: stats.drafts, color: 'var(--warning)' },
-    { label: 'Upcoming', value: stats.upcoming, color: 'var(--primary)' },
-    { label: 'Past', value: stats.past, color: 'var(--text-muted)' },
-  ]
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <h1 className="heading text-2xl font-bold text-[var(--text)]">Dashboard</h1>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-24 rounded-2xl bg-[var(--neutral-100)] animate-pulse" />
-          ))}
-        </div>
+      <div className="py-12 text-center">
+        <div className="inline-block w-8 h-8 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin mb-2" />
+        <p className="text-xs text-[var(--text-muted)] font-medium">Loading system metrics...</p>
       </div>
     )
   }
 
+  const statCards = [
+    { title: 'Total Teachers', count: stats?.totalTeachers || 0, icon: '👨‍🏫', color: 'bg-blue-500', link: '/admin/teachers' },
+    { title: 'Classes & Sections', count: stats?.totalClasses || 0, icon: '🏫', color: 'bg-emerald-500', link: '/admin/classes' },
+    { title: 'Total Diary Entries', count: stats?.totalDiaryEntries || 0, icon: '📚', color: 'bg-indigo-500', link: '/admin/diary' },
+    { title: "Today's Diary Uploads", count: stats?.todaysDiaryCount || 0, icon: '✍️', color: 'bg-purple-500', link: '/admin/diary' },
+    { title: 'Pending Admissions', count: stats?.pendingAdmissionsCount || 0, icon: '📋', color: 'bg-amber-500', link: '/admin/admissions' },
+    { title: 'Upcoming Events', count: stats?.upcomingEventsCount || 0, icon: '🎉', color: 'bg-rose-500', link: '/admin/events' },
+  ]
+
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="heading text-2xl font-bold text-[var(--text)]">Dashboard</h1>
-        <Link
-          to="/admin/events"
-          className="
-            px-5 py-2.5 rounded-xl bg-[var(--secondary)] text-white text-sm font-semibold
-            hover:bg-[var(--secondary-hover)] transition-colors active:scale-95
-          "
-        >
-          Manage Events
-        </Link>
+      <div>
+        <h1 className="heading text-2xl font-black text-[var(--text)]">School Administration Dashboard</h1>
+        <p className="paragraph text-xs text-[var(--text-muted)] mt-1">
+          Overview of faculty, classes, daily homework records, admission requests, and campus events.
+        </p>
       </div>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        {statCards.map((s) => (
-          <div
-            key={s.label}
-            className="bg-[var(--surface)] border border-[var(--neutral-200)] rounded-2xl p-5 shadow-sm"
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {statCards.map((card) => (
+          <Link
+            key={card.title}
+            to={card.link}
+            className="bg-white rounded-2xl p-5 border border-[var(--neutral-200)] shadow-sm hover:shadow-md transition-shadow group flex items-center justify-between"
           >
-            <p className="paragraph text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1">
-              {s.label}
-            </p>
-            <p className="heading text-3xl font-black" style={{ color: s.color }}>
-              {s.value}
-            </p>
-          </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">{card.title}</p>
+              <h3 className="heading text-2xl font-black text-[var(--text)] mt-1">{card.count}</h3>
+            </div>
+            <div className={`w-12 h-12 rounded-2xl ${card.color} text-white flex items-center justify-center text-xl shadow-md group-hover:scale-105 transition-transform`}>
+              {card.icon}
+            </div>
+          </Link>
         ))}
       </div>
 
-      {/* Next event card */}
-      <div className="bg-[var(--surface)] border border-[var(--neutral-200)] rounded-2xl p-6 shadow-sm">
-        <h2 className="heading text-lg font-bold text-[var(--text)] mb-4">Next Upcoming Event</h2>
-        {nextEvent ? (
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div
-              className="
-                flex flex-col items-center justify-center
-                bg-[var(--secondary-light)] border border-[var(--secondary)]/20
-                rounded-xl w-16 h-16 text-center shrink-0
-              "
-            >
-              <span className="text-[10px] font-bold tracking-widest text-[var(--secondary-hover)] uppercase">
-                {nextEventDate.month}
-              </span>
-              <span className="text-xl font-black text-[var(--text)]">{nextEventDate.day}</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="heading text-xl font-bold text-[var(--text)] truncate">
-                {nextEvent.title}
-              </h3>
-              <p className="paragraph text-sm text-[var(--text-secondary)] mt-0.5">
-                {nextEvent.time} &middot; {nextEvent.location}
-              </p>
-            </div>
-            <span className="inline-flex items-center px-3 py-1 rounded-full bg-[var(--success-light)] text-[var(--success)] text-xs font-semibold shrink-0">
-              Published
-            </span>
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <p className="paragraph text-[var(--text-muted)] mb-4">
-              No upcoming published events.
-            </p>
-            <Link
-              to="/admin/events"
-              className="text-sm font-semibold text-[var(--secondary)] hover:text-[var(--secondary-hover)] transition-colors"
-            >
-              Create an event &rarr;
+      {/* Recent Diary Uploads & Admissions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Diary */}
+        <div className="bg-white rounded-2xl p-6 border border-[var(--neutral-200)] shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="heading text-base font-bold text-[var(--text)]">Recent Daily Diary Uploads</h2>
+            <Link to="/admin/diary" className="text-xs font-bold text-[var(--primary)] hover:underline">
+              View All
             </Link>
           </div>
-        )}
-      </div>
-
-      {/* Recent events */}
-      {events.length > 0 && (
-        <div className="bg-[var(--surface)] border border-[var(--neutral-200)] rounded-2xl p-6 shadow-sm">
-          <h2 className="heading text-lg font-bold text-[var(--text)] mb-4">Recent Events</h2>
-          <div className="space-y-3">
-            {events.slice(0, 5).map((event) => {
-              const d = parseEventDate(event.date)
-              const status = getEventStatus(event.date)
-              return (
-                <div
-                  key={event.id}
-                  className="flex items-center justify-between gap-4 py-2 border-b border-[var(--neutral-100)] last:border-0"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-sm font-bold text-[var(--text)] truncate">
-                      {event.title}
+          {!stats?.recentDiary?.length ? (
+            <p className="text-xs text-[var(--text-muted)]">No diary entries found.</p>
+          ) : (
+            <div className="space-y-3">
+              {stats.recentDiary.map((item) => (
+                <div key={item.id} className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+                  <div className="flex items-center justify-between font-bold text-slate-800 mb-1">
+                    <span>
+                      {item.class?.name} ({item.section?.name}) - {item.subject?.name}
                     </span>
-                    <span className="text-xs text-[var(--text-muted)] shrink-0 hidden sm:inline">
-                      {d.month} {d.day}
-                    </span>
+                    <span className="text-[10px] text-slate-500 font-normal">📅 {item.date}</span>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span
-                      className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${
-                        status === 'upcoming'
-                          ? 'bg-[var(--primary-light)] text-[var(--tertiary)]'
-                          : status === 'today'
-                            ? 'bg-[var(--success-light)] text-[var(--success)]'
-                            : 'bg-[var(--neutral-100)] text-[var(--text-muted)]'
-                      }`}
-                    >
-                      {status}
-                    </span>
-                    <span
-                      className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${
-                        event.published
-                          ? 'bg-[var(--success-light)] text-[var(--success)]'
-                          : 'bg-[var(--warning-light)] text-[var(--warning)]'
-                      }`}
-                    >
-                      {event.published ? 'Live' : 'Draft'}
-                    </span>
-                  </div>
+                  <p className="text-slate-600 line-clamp-1">
+                    <strong>Homework:</strong> {item.homework}
+                  </p>
+                  <p className="text-slate-400 text-[10px] mt-1">Teacher: {item.teacher?.user?.name}</p>
                 </div>
-              )
-            })}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Recent Admissions */}
+        <div className="bg-white rounded-2xl p-6 border border-[var(--neutral-200)] shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="heading text-base font-bold text-[var(--text)]">Recent Admission Submissions</h2>
+            <Link to="/admin/admissions" className="text-xs font-bold text-[var(--primary)] hover:underline">
+              View All
+            </Link>
+          </div>
+          {!stats?.recentAdmissions?.length ? (
+            <p className="text-xs text-[var(--text-muted)]">No admission submissions found.</p>
+          ) : (
+            <div className="space-y-3">
+              {stats.recentAdmissions.map((adm) => (
+                <div key={adm.id} className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-xs flex items-center justify-between">
+                  <div>
+                    <h4 className="font-bold text-slate-900">{adm.studentName}</h4>
+                    <p className="text-slate-500 text-[11px]">
+                      Parent: {adm.parentName} • {adm.classApplyingFor}
+                    </p>
+                  </div>
+                  <span
+                    className={`px-2.5 py-1 rounded-full font-bold text-[10px] uppercase ${
+                      adm.status === 'PENDING'
+                        ? 'bg-amber-100 text-amber-800'
+                        : adm.status === 'APPROVED'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {adm.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

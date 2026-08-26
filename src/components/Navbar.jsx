@@ -31,11 +31,13 @@ const navDropdowns = [
 ]
 
 const navLinks = [
+  { label: 'Daily Diary', to: '/daily-diary' },
   { label: 'Facilities', to: '/facilities' },
   { label: 'Events', to: '/events' },
   { label: 'News', to: '/news' },
   { label: 'Admissions', to: '/admissions' },
   { label: 'Contact', to: '/contact' },
+  { label: 'Portal Sign In', to: '/admin/login' },
 ]
 
 const Navbar = () => {

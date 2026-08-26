@@ -1,0 +1,152 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+}
+
+enum Status {
+  ACTIVE
+  DISABLED
+}
+
+enum AdmissionStatus {
+  PENDING
+  REVIEWING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(TEACHER)
+  status       Status    @default(ACTIVE)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  teacher      Teacher?
+}
+
+model Teacher {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  employeeId  String   @unique
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignments TeacherAssignment[]
+  diaries     Diary[]
+}
+
+model Class {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  sections     Section[]
+  assignments  TeacherAssignment[]
+  diaries      Diary[]
+}
+
+model Section {
+  id        String   @id @default(uuid())
+  classId   String
+  name      String
+
+  class       Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
+  assignments TeacherAssignment[]
+  diaries     Diary[]
+
+  @@unique([classId, name])
+}
+
+model Subject {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  assignments TeacherAssignment[]
+  diaries     Diary[]
+}
+
+model TeacherAssignment {
+  id        String   @id @default(uuid())
+  teacherId String
+  classId   String
+  sectionId String
+  subjectId String
+  createdAt DateTime @default(now())
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, classId, sectionId, subjectId])
+}
+
+model Diary {
+  id            String   @id @default(uuid())
+  teacherId     String
+  classId       String
+  sectionId     String
+  subjectId     String
+  date          String   // ISO YYYY-MM-DD string format for easy filtering & index
+  homework      String
+  diary         String
+  notes         String?
+  attachmentUrl String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@index([date])
+  @@index([classId, sectionId])
+  @@index([teacherId])
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  eventDate   String
+  location    String
+  imageUrl    String?
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Admission {
+  id               String          @id @default(uuid())
+  studentName      String
+  parentName       String
+  phone            String
+  email            String
+  classApplyingFor String
+  message          String?
+  status           AdmissionStatus @default(PENDING)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
