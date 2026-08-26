@@ -40,9 +40,12 @@ import TeacherDashboard from './teacher/TeacherDashboard'
 import TeacherDiaryManager from './teacher/TeacherDiaryManager'
 import TeacherProfile from './teacher/TeacherProfile'
 
+import ScrollToTop from './components/ScrollToTop'
+
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <ToastProvider>
         <AuthProvider>
           <RouterRoutes>

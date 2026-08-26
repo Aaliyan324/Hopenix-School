@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Starting database seed...')
 
-  // 1. Admin Account
+  // 1. Admin Accounts
   const adminPasswordHash = await bcrypt.hash('Admin@123', 10)
   const admin = await prisma.user.upsert({
     where: { email: 'admin@hopenix.edu' },
@@ -24,6 +24,25 @@ async function main() {
     },
   })
   console.log('✅ Admin user created/updated:', admin.email)
+
+  const customAdminPasswordHash = await bcrypt.hash('pass123', 10)
+  const customAdmin = await prisma.user.upsert({
+    where: { email: 'hopenix-admin@gmail.com' },
+    update: {
+      passwordHash: customAdminPasswordHash,
+      role: 'ADMIN',
+      status: 'ACTIVE',
+    },
+    create: {
+      name: 'Hopenix Admin',
+      email: 'hopenix-admin@gmail.com',
+      passwordHash: customAdminPasswordHash,
+      role: 'ADMIN',
+      status: 'ACTIVE',
+    },
+  })
+  console.log('✅ Custom Admin user created/updated:', customAdmin.email)
+
 
   // 2. Classes
   const classNames = [
